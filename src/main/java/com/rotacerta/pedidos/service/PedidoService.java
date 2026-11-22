@@ -34,7 +34,7 @@ public class PedidoService {
         for (CriarPedidoRequest.ItemRequest itemReq : request.itens()) {
             ItemPedido item = new ItemPedido(itemReq.descricao(), itemReq.quantidade(), itemReq.precoUnitario());
             pedido.adicionarItem(item);
-            total = total.add(item.getPrecoUnitario());
+            total = total.add(item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())));
         }
 
         pedido.setValorTotal(total);
