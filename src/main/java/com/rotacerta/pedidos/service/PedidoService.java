@@ -4,6 +4,7 @@ import com.rotacerta.pedidos.domain.Cliente;
 import com.rotacerta.pedidos.domain.ItemPedido;
 import com.rotacerta.pedidos.domain.Pedido;
 import com.rotacerta.pedidos.domain.StatusPedido;
+import com.rotacerta.pedidos.exception.RecursoNaoEncontradoException;
 import com.rotacerta.pedidos.repository.ClienteRepository;
 import com.rotacerta.pedidos.repository.PedidoRepository;
 import com.rotacerta.pedidos.web.dto.CriarPedidoRequest;
@@ -26,7 +27,8 @@ public class PedidoService {
 
     @Transactional
     public Pedido criar(CriarPedidoRequest request) {
-        Cliente cliente = clienteRepository.findById(request.clienteId()).get();
+        Cliente cliente = clienteRepository.findById(request.clienteId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Cliente " + request.clienteId() + " não encontrado"));
 
         Pedido pedido = new Pedido(cliente);
         BigDecimal total = BigDecimal.ZERO;
@@ -43,7 +45,8 @@ public class PedidoService {
 
     @Transactional(readOnly = true)
     public Pedido buscarPorId(Long id) {
-        return pedidoRepository.findById(id).get();
+        return pedidoRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pedido " + id + " não encontrado"));
     }
 
     @Transactional(readOnly = true)

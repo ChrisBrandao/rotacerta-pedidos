@@ -3,6 +3,7 @@ package com.rotacerta.pedidos.service;
 import com.rotacerta.pedidos.domain.Cliente;
 import com.rotacerta.pedidos.domain.Pedido;
 import com.rotacerta.pedidos.domain.StatusPedido;
+import com.rotacerta.pedidos.exception.RecursoNaoEncontradoException;
 import com.rotacerta.pedidos.repository.ClienteRepository;
 import com.rotacerta.pedidos.repository.PedidoRepository;
 import com.rotacerta.pedidos.web.dto.CriarPedidoRequest;
@@ -19,7 +20,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,9 +39,9 @@ class PedidoServiceTest {
 
     @BeforeEach
     void setUp() {
-        when(clienteRepository.findById(1L))
+        lenient().when(clienteRepository.findById(1L))
                 .thenReturn(Optional.of(new Cliente("Cliente Teste", "teste@teste.com", "Cabo Frio")));
-        when(pedidoRepository.save(any(Pedido.class))).thenAnswer(inv -> inv.getArgument(0));
+        lenient().when(pedidoRepository.save(any(Pedido.class))).thenAnswer(inv -> inv.getArgument(0));
     }
 
     @Test
@@ -64,5 +67,26 @@ class PedidoServiceTest {
 
         // 3 x 4.50 + 2 x 25.00 = 63.50
         assertThat(pedido.getValorTotal()).isEqualByComparingTo("63.50");
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoPedidoNaoExiste() {
+        when(pedidoRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> pedidoService.buscarPorId(999L))
+                .isInstanceOf(RecursoNaoEncontradoException.class)
+                .hasMessage("Pedido 999 não encontrado");
+    }
+
+    @Test
+    void deveLancarExcecaoAoCriarPedidoComClienteInexistente() {
+        when(clienteRepository.findById(999L)).thenReturn(Optional.empty());
+        var request = new CriarPedidoRequest(999L, List.of(
+                new ItemRequest("Caixa de papelao", 1, new BigDecimal("10.00"))
+        ));
+
+        assertThatThrownBy(() -> pedidoService.criar(request))
+                .isInstanceOf(RecursoNaoEncontradoException.class)
+                .hasMessage("Cliente 999 não encontrado");
     }
 }
