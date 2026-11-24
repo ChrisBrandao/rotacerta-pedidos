@@ -1,5 +1,6 @@
 package com.rotacerta.pedidos.domain;
 
+import com.rotacerta.pedidos.exception.TransicaoInvalidaException;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -54,6 +55,11 @@ public class Pedido {
     public BigDecimal getValorTotal() { return valorTotal; }
     public LocalDateTime getCriadoEm() { return criadoEm; }
 
-    public void setStatus(StatusPedido status) { this.status = status; }
+    public void alterarStatus(StatusPedido novo) {
+        if (!this.status.podeTransicionarPara(novo)) {
+            throw new TransicaoInvalidaException(this.status, novo);
+        }
+        this.status = novo;
+    }
     public void setValorTotal(BigDecimal valorTotal) { this.valorTotal = valorTotal; }
 }

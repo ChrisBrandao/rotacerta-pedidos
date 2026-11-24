@@ -57,7 +57,7 @@ public class PedidoService {
     @Transactional
     public Pedido atualizarStatus(Long id, StatusPedido novoStatus) {
         Pedido pedido = buscarPorId(id);
-        pedido.setStatus(novoStatus);
+        pedido.alterarStatus(novoStatus);
         return pedidoRepository.save(pedido);
     }
 }
